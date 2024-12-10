@@ -167,29 +167,40 @@ while true; do
             pause
             ;;
         5)
-            read -p "Nom d'utilisateur    v  rifier: " username
-
-            samba-tool user show "$username" > /dev/null 2>&1
-            if [ $? -ne 0 ]; then
+            read -p "Nom d'utilisateur à vérifier: " username
+        
+            # Vérifier si l'utilisateur existe
+            if ! samba-tool user show "$username" > /dev/null 2>&1; then
                 echo -e "${RED}Erreur : L'utilisateur $username n'existe pas.${NC}"
                 pause
                 continue
             fi
-
-            user_info=$(samba-tool user show "$username")
-
-            echo "$user_info"
-
-            if echo "$user_info" | grep -q "account_locked: true"; then
-                echo -e "${RED}Le compte est verrouill  .${NC}"
-            elif echo "$user_info" | grep -q "password_expired: true"; then
-                echo -e "${YELLOW}Le mot de passe est expir  .${NC}"
-            elif echo "$user_info" | grep -q "userAccountControl:.*ACCOUNTDISABLE"; then
-                echo -e "${YELLOW}Le compte est d  sactiv  .${NC}"
+        
+            # Récupérer les informations détaillées
+            user_info=$(samba-tool user show "$username" --attributes=all)
+        
+            # Afficher les informations principales de manière formatée
+            echo -e "${BLUE}Informations du compte utilisateur:${NC}"
+            echo "$user_info" | grep -E "displayName|userPrincipalName|mail|telephoneNumber|whenCreated|lastLogon"
+        
+            # Vérifier le statut du compte de manière plus précise
+            account_status=$(samba-tool user show "$username" | grep -oP 'userAccountControl:\K\w+')
+        
+            # Vérification détaillée du statut
+            if [[ "$account_status" =~ "ACCOUNTDISABLE" ]]; then
+                echo -e "${RED}Statut : Compte DÉSACTIVÉ${NC}"
+            elif samba-tool user show "$username" | grep -q "account_locked: true"; then
+                echo -e "${RED}Statut : Compte VERROUILLÉ${NC}"
+            elif samba-tool user show "$username" | grep -q "password_expired: true"; then
+                echo -e "${YELLOW}Statut : Mot de passe EXPIRÉ${NC}"
             else
-                echo -e "${GREEN}Le compte est actif.${NC}"
+                echo -e "${GREEN}Statut : Compte ACTIF${NC}"
             fi
-
+        
+            # Afficher les groupes de l'utilisateur
+            echo -e "\n${BLUE}Groupes:${NC}"
+            samba-tool group listmembers | grep "$username"
+        
             pause
             ;;
         6)
