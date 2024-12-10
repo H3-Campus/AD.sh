@@ -22,7 +22,7 @@ pause() {
 
 # Liste des groupes, en excluant les groupes système
 get_group_list() {
-    local excluded_groups="Domain Admins|Enterprise Admins|Domain Users|Domain Guests|Administrators|Users|Guests|krbtgt|DnsAdmins|Windows Authorization Access Group|Server Operators"
+    local excluded_groups="Account Operators|Allowed RODC Password Replication Group|Cert Publishers|Backup Operators|DnsUpdateProxy|IIS_IUSRS|Enterprise Read-only Domain Controllers|Event Log Readers|Network Configuration Operators|Group Policy Creator Owners|Incoming Forest Trust Builders|Performance Log Users|Performance Monitor Users|Pre-Windows 2000 Compatible Access|Read-only Domain Controllers|Terminal Server License Servers|Protected Users|RAS and IAS Servers|Schema Admins|Print Operators|Replicator|Denied RODC Password Replication Group|Cryptographic Operators|Domain Controllers|Distributed COM Users|Certificate Service DCOM Access|Enterprise Admins|Domain Users|Domain Guests|Administrators|Users|Guests|krbtgt|DnsAdmins|Windows Authorization Access Group|Server Operators"
 
     samba-tool group list | grep -Ev "^($excluded_groups)$" | sort
 }
