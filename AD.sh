@@ -189,7 +189,12 @@ while true; do
             fi
         
             # Récupérer les informations de l'utilisateur
-            user_info=$(samba-tool user show "$username")
+            user_info=$(samba-tool user show "$username" 2>/dev/null)
+            if [ $? -ne 0 ]; then
+                echo -e "${RED}Erreur : Impossible de récupérer les informations pour l'utilisateur $username.${NC}"
+                pause
+                continue
+            fi
         
             # Afficher les informations principales de manière formatée
             echo -e "${BLUE}Informations du compte utilisateur:${NC}"
@@ -205,11 +210,13 @@ while true; do
             else
                 echo -e "${GREEN}Statut : Compte ACTIF${NC}"
             fi
-
+        
             # Afficher les groupes de l'utilisateur
             echo -e "\n${BLUE}Groupes:${NC}"
-            user_groups=$(list_user_groups "$username")
-            if [ -n "$user_groups" ]; then
+            user_groups=$(samba-tool group listmembers | grep -E "^\s*$username" 2>/dev/null)
+            if [ $? -ne 0 ]; then
+                echo -e "${RED}Erreur : Impossible de récupérer les groupes pour l'utilisateur $username.${NC}"
+            elif [ -n "$user_groups" ]; then
                 echo "$user_groups" | sort
             else
                 echo "Aucun groupe trouvé."
@@ -217,6 +224,7 @@ while true; do
         
             pause
             ;;
+
         6)
             read -p "Nom d'utilisateur à ajouter au groupe : " username
 
