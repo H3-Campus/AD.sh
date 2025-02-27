@@ -39,3 +39,7 @@ process_replication_info() {
 
 # Main execution
 echo "Samba Replication Status Report"
+echo "Generated on: $(date)"
+echo ""
+
+samba-tool drs showrepl | process_replication_info
